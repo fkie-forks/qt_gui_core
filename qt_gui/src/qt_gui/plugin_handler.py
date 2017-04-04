@@ -31,10 +31,10 @@
 import traceback
 
 from python_qt_binding.QtCore import qCritical, qDebug, QObject, Qt, qWarning, Signal, Slot
-from python_qt_binding.QtGui import QDockWidget, QToolBar
+from python_qt_binding.QtGui import QDockWidget, QToolBar, QWidget
 
 from .dock_widget import DockWidget
-from .dock_widget_title_bar import DockWidgetTitleBar
+from .dock_widget_title_bar import DockWidgetTitleBar, DockWidgetTitleBarSW
 from .icon_loader import get_icon
 from .window_changed_signaler import WindowChangedSignaler
 
@@ -250,10 +250,15 @@ class PluginHandler(QObject):
             features = dock_widget.features()
             dock_widget.setFeatures(features ^ (QDockWidget.DockWidgetMovable | QDockWidget.DockWidgetFloatable))
 
-    def _update_title_bar(self, dock_widget, hide_help=False, hide_reload=False):
+    def _update_title_bar(self, dock_widget, hide_help=False, hide_reload=False, hide_bar=None):
+        if hide_bar is None:
+            hide_bar = self._application_context.options.hide_titlebars
         title_bar = dock_widget.titleBarWidget()
-        if title_bar is None:
-            title_bar = DockWidgetTitleBar(dock_widget, self._application_context.qtgui_path)
+        class_id = DockWidgetTitleBar
+        if hide_bar:
+            class_id = DockWidgetTitleBarSW
+        if title_bar is None or not isinstance(title_bar, class_id):
+            title_bar = class_id(dock_widget, self._application_context.qtgui_path)
             dock_widget.setTitleBarWidget(title_bar)
 
             # connect extra buttons
@@ -266,6 +271,10 @@ class PluginHandler(QObject):
                 title_bar.show_button('reload', not hide_reload)
             title_bar.connect_button('configuration', self._trigger_configuration)
             title_bar.show_button('configuration', self._plugin_has_configuration)
+
+    def set_hidden_title_bar(self, hide=True):
+        for _key, value in self._widgets.iteritems():
+            self._update_title_bar(value[0], hide_bar=hide)
 
     def _set_window_icon(self, widget):
         if self._plugin_descriptor:

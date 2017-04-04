@@ -35,6 +35,36 @@ from python_qt_binding.QtCore import QEvent, QObject, Qt, qWarning, Signal
 from python_qt_binding.QtGui import QDockWidget, QIcon, QMenu, QWidget
 
 
+class DockWidgetTitleBarSW(QWidget):
+
+    """An empty title bar for dock widgets providing custom actions.
+      This bar is used to remove the title bar from dock widgets and
+      remain all functionality. """
+
+    def __init__(self, dock_widget, qtgui_path):
+        super(DockWidgetTitleBarSW, self).__init__(dock_widget)
+        self._title_bar = DockWidgetTitleBar(dock_widget, qtgui_path)
+        self._title_bar.setVisible(False)
+
+    def connect_close_button(self, callback):
+        pass
+
+    def connect_button(self, button_id, callback):
+        pass
+
+    def show_button(self, button_id, visibility=True):
+        self._title_bar.show_button(button_id, visibility)
+
+    def hide_button(self, button_id):
+        self.show_button(button_id, False)
+
+    def save_settings(self, settings):
+        self._title_bar.save_settings(settings)
+
+    def restore_settings(self, settings):
+        self._title_bar.restore_settings(settings)
+
+
 class DockWidgetTitleBar(QWidget):
 
     """Title bar for dock widgets providing custom actions."""

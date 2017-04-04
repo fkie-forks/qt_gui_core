@@ -541,3 +541,8 @@ class PluginManager(QObject):
             self._number_of_ongoing_calls = None
             # restore state of top-level widgets
             self.plugins_changed_signal.emit()
+
+    def set_hidden_title_bar_callback(self, hide=True):
+        self._application_context.options.hide_titlebars = hide
+        for _instance_id, info in self._running_plugins.items():
+            info['handler'].set_hidden_title_bar(hide)

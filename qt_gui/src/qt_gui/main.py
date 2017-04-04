@@ -82,6 +82,8 @@ class Main(object):
         if not standalone:
             common_group.add_argument('-f', '--freeze-layout', dest='freeze_layout', action='store_true',
                 help='freeze the layout of the GUI (prevent rearranging widgets, disable undock/redock)')
+        common_group.add_argument('--hide-titlebars', dest='hide_titlebars', default=False, action='store_true',
+            help='hide the titlebars of all running plugins')
         common_group.add_argument('--force-discover', dest='force_discover', default=False, action='store_true',
             help='force a rediscover of plugins')
         common_group.add_argument('-h', '--help', action='help',
@@ -207,6 +209,7 @@ class Main(object):
         # set default values for options not available in standalone mode
         if standalone:
             self._options.freeze_layout = False
+            self._options.hide_titlebars = False
             self._options.lock_perspective = False
             self._options.multi_process = False
             self._options.perspective = None
@@ -475,6 +478,13 @@ class Main(object):
             main_window.save_settings_before_close_signal.connect(plugin_manager.close_application)
             # signal save and shutdown called for all plugins, trigger closing main window again
             plugin_manager.close_application_signal.connect(main_window.close, type=Qt.QueuedConnection)
+
+        if menu_bar is not None and plugin_manager is not None:
+            settings_menu = menu_bar.addMenu(menu_bar.tr('Se&ttings'))
+            action = QAction('Hide &titlebars', settings_menu, checkable=True)
+            action.setChecked(self._options.hide_titlebars)
+            action.triggered.connect(plugin_manager.set_hidden_title_bar_callback)
+            settings_menu.addAction(action)
 
         if main_window is not None and menu_bar is not None:
             about_handler = AboutHandler(context.qtgui_path, main_window)
